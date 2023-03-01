@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/j32u4ukh/cntr"
 	"github.com/pkg/errors"
 )
 
@@ -21,9 +22,8 @@ func NewUpdateStmt(tableName string) *UpdateStmt {
 	s := &UpdateStmt{
 		DbName:    "",
 		TableName: tableName,
-		// pairs:     NewKeyValueSlice(),
-		datas: []string{},
-		Where: nil,
+		datas:     []string{},
+		Where:     nil,
 	}
 	return s
 }
@@ -35,9 +35,6 @@ func (s *UpdateStmt) SetDbName(dbName string) *UpdateStmt {
 
 // 要求外部依據固定傳入順序，避免還要進行排序
 func (s *UpdateStmt) Update(key string, value string) *UpdateStmt {
-	// pair := NewKeyValuePair(key, value)
-	// fmt.Printf("(s *UpdateStmt) Update | %+v\n", pair)
-	// s.pairs.AddPair(pair)
 	s.datas = append(s.datas, fmt.Sprintf("`%s` = %s", key, value))
 	return s
 }
@@ -50,8 +47,6 @@ func (s *UpdateStmt) SetCondition(where *WhereStmt) *UpdateStmt {
 func (s *UpdateStmt) Release() {
 	s.datas = s.datas[:0]
 	s.Where = nil
-	// s.pairs.Release()
-	// s.Where.Release()
 }
 
 /*
@@ -65,10 +60,6 @@ func (s *UpdateStmt) ToStmt() (string, error) {
 	if len(s.datas) == 0 {
 		return "", errors.New("Update data is empty.")
 	}
-
-	// if s.pairs.IsEmpty() {
-	// 	return "", errors.New("Update data is empty.")
-	// }
 
 	if s.Where == nil {
 		return "", errors.New("Where condition is nil.")
@@ -92,126 +83,118 @@ func (s *UpdateStmt) ToStmt() (string, error) {
 	return sql, nil
 }
 
-// NOTE: 批次更新仍保留，但目前仍有使用 SqlValue(value)，待之後有空再來修改
-// ////////////////////////////////////////////////////////////////////////////////////////////////////
-// // BatchUpdateStmt
-// ////////////////////////////////////////////////////////////////////////////////////////////////////
-// type BatchUpdateStmt struct {
-// 	Name        string
-// 	PrimaryKey  string
-// 	PrimaryKeys []string
-// 	// Key: column name, Value: SetStmt
-// 	sets map[string]*SetStmt
-// }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// BatchUpdateStmt
+////////////////////////////////////////////////////////////////////////////////////////////////////
+type BatchUpdateStmt struct {
+	TableName   string
+	PrimaryKey  string
+	PrimaryKeys *cntr.Array[string]
+	cols        *cntr.Array[string]
+	sets        map[string]*SetStmt
+}
 
-// // primaryKey: 多組數據時，根據此欄位來區分不同數據
-// func NewBatchUpdateStmt(name string, primaryKey string) *BatchUpdateStmt {
-// 	s := &BatchUpdateStmt{
-// 		Name:        name,
-// 		PrimaryKey:  primaryKey,
-// 		PrimaryKeys: []string{},
-// 		sets:        map[string]*SetStmt{},
-// 	}
-// 	return s
-// }
+// primaryKey: 多組數據時，根據此欄位來區分不同數據
+func NewBatchUpdateStmt(tableName string, primaryKey string) *BatchUpdateStmt {
+	s := &BatchUpdateStmt{
+		TableName:   tableName,
+		PrimaryKey:  primaryKey,
+		PrimaryKeys: cntr.NewArray[string](),
+		cols:        cntr.NewArray[string](),
+		// key: column name
+		sets: map[string]*SetStmt{},
+	}
+	return s
+}
 
-// func (s *BatchUpdateStmt) Update(data map[string]any) *BatchUpdateStmt {
-// 	key := SqlValue(data[s.PrimaryKey])
-// 	s.PrimaryKeys = append(s.PrimaryKeys, key)
-// 	var ok bool
+func (s *BatchUpdateStmt) Update(key string, col string, value string) *BatchUpdateStmt {
+	if !s.PrimaryKeys.Contains(key) {
+		s.PrimaryKeys.Append(key)
+	}
 
-// 	for col, value := range data {
-// 		if col == s.PrimaryKey {
-// 			continue
-// 		}
+	if _, ok := s.sets[col]; !ok {
+		s.sets[col] = newSetStmt(s.PrimaryKey, col)
+		s.cols.Append(col)
+	}
 
-// 		if _, ok = s.sets[col]; !ok {
-// 			s.sets[col] = newSetStmt(s.PrimaryKey, col)
-// 		}
+	s.sets[col].AddData(key, value)
+	return s
+}
 
-// 		s.sets[col].AddData(key, value)
-// 	}
-// 	return s
-// }
+// 取得緩存數量
+func (s *BatchUpdateStmt) GetBufferNumber() int {
+	return s.PrimaryKeys.Length()
+}
 
-// // 取得緩存數量
-// func (s *BatchUpdateStmt) GetBufferNumber() int {
-// 	return len(s.PrimaryKeys)
-// }
+func (s *BatchUpdateStmt) Release() {
+	s.PrimaryKeys.Clear()
 
-// func (s *BatchUpdateStmt) Release() {
-// 	s.PrimaryKeys = []string{}
+	for k := range s.sets {
+		delete(s.sets, k)
+	}
+}
 
-// 	for k := range s.sets {
-// 		delete(s.sets, k)
-// 	}
-// }
+func (s *BatchUpdateStmt) ToStmt() (string, error) {
+	sets := []string{}
+	var set *SetStmt
+	var stmt string
+	var err error
 
-// func (s *BatchUpdateStmt) ToStmt() (string, error) {
-// 	sets := []string{}
-// 	var stmt string
-// 	var err error
+	for _, col := range s.cols.Elements {
+		set = s.sets[col]
+		stmt, err = set.toStmt()
 
-// 	for _, set := range s.sets {
-// 		stmt, err = set.toStmt()
+		if err != nil {
+			return "", errors.Wrap(err, "Failed to generate set statement.")
+		}
 
-// 		if err != nil {
-// 			return "", errors.Wrap(err, "Failed to generate set statement.")
-// 		}
+		sets = append(sets, stmt)
+	}
 
-// 		sets = append(sets, stmt)
-// 	}
+	setStmt := strings.Join(sets, ", ")
+	pks := strings.Join(s.PrimaryKeys.Elements, ", ")
+	sql := fmt.Sprintf("UPDATE %s SET %s WHERE `%s` IN (%s);", s.TableName, setStmt, s.PrimaryKey, pks)
+	return sql, nil
+}
 
-// 	setStmt := strings.Join(sets, ", ")
-// 	pks := strings.Join(s.PrimaryKeys, ", ")
-// 	sql := fmt.Sprintf("UPDATE %s SET %s WHERE `%s` IN (%s);", s.Name, setStmt, s.PrimaryKey, pks)
-// 	return sql, nil
-// }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// SetStmt
+////////////////////////////////////////////////////////////////////////////////////////////////////
+type SetStmt struct {
+	key    string
+	column string
+	keys   []string
+	values []string
+}
 
-// ////////////////////////////////////////////////////////////////////////////////////////////////////
-// // SetStmt
-// ////////////////////////////////////////////////////////////////////////////////////////////////////
-// type SetStmt struct {
-// 	key    string
-// 	column string
-// 	// key: value of primary column; value: value of target column
-// 	data map[string]string
-// }
+func newSetStmt(key string, column string) *SetStmt {
+	s := &SetStmt{
+		key:    key,
+		column: column,
+		keys:   []string{},
+		values: []string{},
+	}
+	return s
+}
 
-// func newSetStmt(key string, column string) *SetStmt {
-// 	s := &SetStmt{
-// 		key:    key,
-// 		column: column,
-// 		data:   map[string]string{},
-// 	}
-// 	return s
-// }
+func (s *SetStmt) AddData(key string, value string) {
+	s.keys = append(s.keys, key)
+	s.values = append(s.values, value)
+}
 
-// func (s *SetStmt) AddData(key string, value any) {
-// 	s.data[key] = SqlValue(value)
-// 	// fmt.Printf("key: %s, value: %s\n", key, s.data[key])
-// }
+func (s *SetStmt) toStmt() (string, error) {
+	// SET [column] = CASE [primary_key]
+	// WHEN m0.fileds.Get(0) THEN 'Insert1'
+	// WHEN m1.fileds.Get(0) THEN 'Insert3'
+	// END
+	content := []string{}
+	var i int
+	var key string
 
-// func (s *SetStmt) toStmt() (string, error) {
-// 	// SET [column] = CASE [primary_key]
-// 	// WHEN m0.fileds.Get(0) THEN 'Insert1'
-// 	// WHEN m1.fileds.Get(0) THEN 'Insert3'
-// 	// END
-// 	content := []string{}
+	for i, key = range s.keys {
+		// WHEN [value of primary column] THEN [value of target column]
+		content = append(content, fmt.Sprintf("WHEN %s THEN %s", key, s.values[i]))
+	}
 
-// 	// 確保每次輸出順序相同
-// 	keys := make([]string, 0, len(s.data))
-// 	for k := range s.data {
-// 		// fmt.Printf("(s *SetStmt) toStmt | k: %s\n", k)
-// 		keys = append(keys, k)
-// 	}
-// 	sort.Strings(keys)
-// 	// fmt.Printf("(s *SetStmt) toStmt | keys: %+v\n", keys)
-
-// 	for _, key := range keys {
-// 		// WHEN [value of primary column] THEN [value of target column]
-// 		content = append(content, fmt.Sprintf("WHEN %s THEN %s", key, s.data[key]))
-// 	}
-
-// 	return fmt.Sprintf("`%s` = CASE `%s` %s END", s.column, s.key, strings.Join(content, " ")), nil
-// }
+	return fmt.Sprintf("`%s` = CASE `%s` %s END", s.column, s.key, strings.Join(content, " ")), nil
+}
