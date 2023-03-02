@@ -92,6 +92,7 @@ type BatchUpdateStmt struct {
 	PrimaryKeys *cntr.Array[string]
 	cols        *cntr.Array[string]
 	sets        map[string]*SetStmt
+	Where       *WhereStmt
 }
 
 // primaryKey: 多組數據時，根據此欄位來區分不同數據
@@ -102,7 +103,8 @@ func NewBatchUpdateStmt(tableName string, primaryKey string) *BatchUpdateStmt {
 		PrimaryKeys: cntr.NewArray[string](),
 		cols:        cntr.NewArray[string](),
 		// key: column name
-		sets: map[string]*SetStmt{},
+		sets:  map[string]*SetStmt{},
+		Where: nil,
 	}
 	return s
 }
@@ -118,6 +120,11 @@ func (s *BatchUpdateStmt) Update(key string, col string, value string) *BatchUpd
 	}
 
 	s.sets[col].AddData(key, value)
+	return s
+}
+
+func (s *BatchUpdateStmt) SetCondition(where *WhereStmt) *BatchUpdateStmt {
+	s.Where = where
 	return s
 }
 
@@ -152,8 +159,14 @@ func (s *BatchUpdateStmt) ToStmt() (string, error) {
 	}
 
 	setStmt := strings.Join(sets, ", ")
-	pks := strings.Join(s.PrimaryKeys.Elements, ", ")
-	sql := fmt.Sprintf("UPDATE %s SET %s WHERE `%s` IN (%s);", s.TableName, setStmt, s.PrimaryKey, pks)
+	where := WS().In(s.PrimaryKey, s.PrimaryKeys.Elements...)
+	wstmt, err := where.AddAndCondtion(s.Where).ToStmt()
+
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to generate where statement.")
+	}
+
+	sql := fmt.Sprintf("UPDATE %s SET %s WHERE %s;", s.TableName, setStmt, wstmt)
 	return sql, nil
 }
 

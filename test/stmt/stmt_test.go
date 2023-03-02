@@ -28,11 +28,11 @@ func TestCreateStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestCreateStmt | Error: %+v\n", err))
+			t.Errorf("TestCreateStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestCreateStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestCreateStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -55,11 +55,11 @@ func TestTableCreateStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestCreateStmt | Error: %+v\n", err))
+			t.Errorf("TestCreateStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestCreateStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestCreateStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -74,11 +74,11 @@ func TestInsertStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestInsertStmt | Error: %+v\n", err))
+			t.Errorf("TestInsertStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -119,11 +119,11 @@ func TestTableInsertStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestInsertStmt | Error: %+v\n", err))
+			t.Errorf("TestInsertStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -139,11 +139,11 @@ func TestSelectStmt1(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelectStmt1 | Error: %+v\n", err))
+			t.Errorf("TestSelectStmt1 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestSelectStmt1 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestSelectStmt1 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -174,11 +174,11 @@ func TestTableSelectStmt1(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelectStmt1 | Error: %+v\n", err))
+			t.Errorf("TestSelectStmt1 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestSelectStmt1 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestSelectStmt1 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -192,11 +192,11 @@ func TestSelectStmt2(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelectStmt2 | Error: %+v\n", err))
+			t.Errorf("TestSelectStmt2 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestSelectStmt2 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestSelectStmt2 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -216,11 +216,11 @@ func TestSelectStmt3(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelectStmt3 | Error: %+v\n", err))
+			t.Errorf("TestSelectStmt3 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestSelectStmt3 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestSelectStmt3 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -244,11 +244,11 @@ func TestSelectStmt4(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelectStmt4 | Error: %+v\n", err))
+			t.Errorf("TestSelectStmt4 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestSelectStmt4 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestSelectStmt4 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -265,11 +265,11 @@ func TestSelectStmt5(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelectStmt5 | Error: %+v\n", err))
+			t.Errorf("TestSelectStmt5 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestSelectStmt5 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestSelectStmt5 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -288,11 +288,11 @@ func TestSelectStmt6(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelectStmt6 | Error: %+v\n", err))
+			t.Errorf("TestSelectStmt6 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestSelectStmt6 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestSelectStmt6 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -312,11 +312,11 @@ func TestSelectStmt7(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestSelectStmt7 | Error: %+v\n", err))
+			t.Errorf("TestSelectStmt7 | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestSelectStmt7 |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestSelectStmt7 |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -333,11 +333,11 @@ func TestUpdateStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestUpdateStmt | Error: %+v\n", err))
+			t.Errorf("TestUpdateStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -369,11 +369,38 @@ func TestTableUpdateStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestUpdateStmt | Error: %+v\n", err))
+			t.Errorf("TestUpdateStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql)
+		}
+	}
+}
+
+func TestBatchUpdate(t *testing.T) {
+	answer := "UPDATE Desk SET `length` = CASE `id` WHEN 0 THEN 3 WHEN 1 THEN 4 WHEN 2 THEN 6 END, `width` = CASE `id` WHEN 0 THEN 5 WHEN 1 THEN 6 WHEN 2 THEN 5 END WHERE `id` IN (0, 1, 2);"
+
+	bus := stmt.NewBatchUpdateStmt("Desk", "id")
+	bus.Update("0", "length", "3")
+	bus.Update("0", "width", "5")
+	bus.Update("1", "length", "4")
+	bus.Update("1", "width", "6")
+	bus.Update("2", "length", "6")
+	bus.Update("2", "width", "5")
+	sql, err := bus.ToStmt()
+	if err != nil {
+		fmt.Printf("err: %+v\n", err)
+		return
+	}
+
+	if err != nil || sql != answer {
+		if err != nil {
+			t.Errorf("TestUpdateStmt | Error: %+v\n", err)
+		}
+
+		if sql != answer {
+			t.Errorf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
@@ -403,32 +430,11 @@ func TestDeleteStmt(t *testing.T) {
 
 	if err != nil || sql != answer {
 		if err != nil {
-			t.Error(fmt.Sprintf("TestDeleteStmt | Error: %+v\n", err))
+			t.Errorf("TestDeleteStmt | Error: %+v\n", err)
 		}
 
 		if sql != answer {
-			t.Error(fmt.Sprintf("TestDeleteStmt |\nanswer: %s\nsql: %s", answer, sql))
+			t.Errorf("TestDeleteStmt |\nanswer: %s\nsql: %s", answer, sql)
 		}
 	}
 }
-
-// func TestBatchUpdateStmt(t *testing.T) {
-// 	answer := "UPDATE Desk SET `Value` = CASE `Id` WHEN 1 THEN '3' WHEN 3 THEN '11' END, `Weight` = CASE `Id` WHEN 1 THEN 39 WHEN 2 THEN 79 END WHERE `Id` IN (1, 2, 3);"
-//
-// 	sql, err := stmt.
-// 		NewBatchUpdateStmt("Desk", "Id").
-// 		AddData(map[string]any{"Id": 1, "Value": "3", "Weight": 39}).
-// 		AddData(map[string]any{"Id": 2, "Weight": 79}).
-// 		AddData(map[string]any{"Id": 3, "Value": "11"}).
-// 		ToStmt()
-
-// 	if err != nil || sql != answer {
-// 		if err != nil {
-// 			t.Error(fmt.Sprintf("TestBatchUpdateStmt | Error: %+v\n", err))
-// 		}
-
-// 		if sql != answer {
-// 			t.Error(fmt.Sprintf("TestBatchUpdateStmt |\nanswer: %s\nsql: %s", answer, sql))
-// 		}
-// 	}
-// }
