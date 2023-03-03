@@ -44,7 +44,10 @@ type Column struct {
 	Collate string
 
 	// 資料庫方言類型
-	dial dialect.SQLDialect
+	Dial dialect.SQLDialect
+
+	// 是否忽略此欄位(用於結構中有定義，但不希望成為資料表欄位時)
+	IgnoreThis bool
 }
 
 func NewColumn(param *ColumnParam) *Column {
@@ -60,7 +63,8 @@ func NewColumn(param *ColumnParam) *Column {
 		Algo:         param.Algo,
 		Comment:      param.Comment,
 		Collate:      "",
-		dial:         param.dial,
+		Dial:         param.dial,
+		IgnoreThis:   param.IgnoreThis,
 	}
 
 	return column
@@ -105,7 +109,7 @@ func NewDbColumn(name string, kind string, isPrimaryKey bool, canNull bool, _def
 	}
 	// ====================================================================================================
 
-	if dialect.GetDialect(column.dial).IsSortable(column.Type) {
+	if dialect.GetDialect(column.Dial).IsSortable(column.Type) {
 		column.Collate = collate
 	}
 
@@ -138,7 +142,7 @@ func (c *Column) SetPrimaryKey() {
 }
 
 func (c *Column) SetCollate(collate string) {
-	if dialect.GetDialect(c.dial).IsSortable(c.Type) {
+	if dialect.GetDialect(c.Dial).IsSortable(c.Type) {
 		c.Collate = collate
 	}
 }

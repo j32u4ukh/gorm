@@ -148,7 +148,7 @@ func (s *CreateStmt) ToStmt() (string, error) {
 		tableName = fmt.Sprintf("`%s`", s.TableName)
 	}
 
-	sql := fmt.Sprintf(`CREATE TABLE %s (%s) ENGINE = %s COLLATE = '%s';`,
+	sql := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (%s) ENGINE = %s COLLATE = '%s';`,
 		tableName,
 		strings.Join(stmts, ", "),
 		s.Engine,

@@ -118,7 +118,7 @@ func (s *sqlite3) IsTableExistsStmt(tableName string) string {
 	return fmt.Sprintf("SELECT name FROM sqlite_master WHERE type='table' and name = '%s';", tableName)
 }
 
-// 是否為數值類型
+// 是否可適用排序演算法
 func (s *sqlite3) IsSortable(kind string) bool {
 	return false
 }

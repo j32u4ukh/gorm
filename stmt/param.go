@@ -178,19 +178,12 @@ func (p *TableParam) operateIndexMap(source string, target string, op func(strin
 	var err error
 
 	for kind, indexs := range p.indexMap {
-		// glog.Trace("gosql", "kind: %s", kind)
-
 		for indexName, cols := range indexs {
-			// glog.Trace("gosql", "kind: %s, indexName: %s", kind, indexName)
-
 			err = op(kind, indexName, cols)
-
 			if err != nil {
 				fmt.Printf("(p *TableParam) operateIndexMap | Error: %+v", err)
 			}
 		}
-
-		// glog.Trace("gosql", "End kind: %s", kind)
 	}
 }
 
@@ -201,6 +194,8 @@ func (p *TableParam) IterIndexMap() *cntr.Iterator {
 	var kind, indexName string
 	var indexs map[string]*cntr.Array[string]
 	var cols *cntr.Array[string]
+
+	// TODO: 先 UNIQUE 再 INDEX
 
 	if isUnSorted {
 		for kind, indexs = range p.indexMap {
@@ -365,6 +360,9 @@ type ColumnParam struct {
 
 	// 註解
 	Comment string
+
+	// 是否忽略此欄位(用於結構中有定義，但不希望成為資料表欄位時)
+	IgnoreThis bool
 
 	// 資料庫方言類型
 	dial dialect.SQLDialect

@@ -166,7 +166,7 @@ func (s *mysql) IsTableExistsStmt(tableName string) string {
 	return fmt.Sprintf("SELECT table_name FROM information_schema.tables WHERE TABLE_NAME = '%s';", tableName)
 }
 
-// 是否為數值類型
+// 是否可適用排序演算法
 func (s *mysql) IsSortable(kind string) bool {
 	return s.KindMap["STRING"].Contains(strings.ToUpper(kind))
 }

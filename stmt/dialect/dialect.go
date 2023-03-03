@@ -10,7 +10,7 @@ const (
 
 var dialectsMap = map[SQLDialect]Dialect{}
 
-// MySQL 和 MariaDb 中有部分語法上的差異
+// 處理不同資料庫在語法上的差異
 type Dialect interface {
 	// 變數類型，轉為 SQL 中的變數類型
 	TypeOf(dataType string) string
@@ -27,7 +27,7 @@ type Dialect interface {
 	// 表格是否存在的 SQL 語法
 	IsTableExistsStmt(tableName string) string
 
-	// 是否為可排序的類型
+	// 是否可適用排序演算法
 	IsSortable(kind string) bool
 
 	// 判斷變數類型(integer, float, text, ...)
