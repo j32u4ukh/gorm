@@ -109,13 +109,17 @@ func (s *sqlite3) SizeOf(dataType string, size int32) int32 {
 // 	panic(fmt.Sprintf("invalid sql type %s", kind))
 // }
 
-func (s *sqlite3) DbToProto(kind string) string {
-	panic(fmt.Sprintf("invalid sql type %s", kind))
-}
+// func (s *sqlite3) DbToProto(kind string) string {
+// 	panic(fmt.Sprintf("invalid sql type %s", kind))
+// }
 
-// 表格是否存在的 SQL 語法
-func (s *sqlite3) IsTableExistsStmt(tableName string) string {
-	return fmt.Sprintf("SELECT name FROM sqlite_master WHERE type='table' and name = '%s';", tableName)
+// // 表格是否存在的 SQL 語法
+// func (s *sqlite3) IsTableExistsStmt(tableName string) string {
+// 	return fmt.Sprintf("SELECT name FROM sqlite_master WHERE type='table' and name = '%s';", tableName)
+// }
+
+func (s *sqlite3) GetDefault(dataType string) string {
+	return ""
 }
 
 // 是否可適用排序演算法

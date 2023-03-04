@@ -157,20 +157,3 @@ func (s *CreateStmt) ToStmt() (string, error) {
 
 	return sql, nil
 }
-
-func (s *CreateStmt) Clone() *CreateStmt {
-	clone := &CreateStmt{
-		DbName:     s.DbName,
-		TableName:  s.TableName,
-		TableParam: s.TableParam.Clone(),
-		Columns:    []*Column{},
-		Engine:     s.Engine,
-		Collate:    s.Collate,
-	}
-
-	for _, col := range s.Columns {
-		clone.Columns = append(clone.Columns, col.Clone())
-	}
-
-	return clone
-}
