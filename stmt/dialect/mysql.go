@@ -131,22 +131,22 @@ func (s *mysql) SizeOf(dataType string, size int32) int32 {
 	}
 }
 
-// Protobuf 中的變數類型，轉為 SQL 中的變數類型
-func (s *mysql) ProtoTypeOf(kind string) string {
-	switch kind {
-	case "INT32":
-		return "INT"
-	case "INT64":
-		return "BIGINT"
-	case "BOOL":
-		return "TINYINT"
-	case "STRING":
-		return "VARCHAR"
-	// 原生 SQL 變數類型，無須修改
-	default:
-		return kind
-	}
-}
+// // Protobuf 中的變數類型，轉為 SQL 中的變數類型
+// func (s *mysql) ProtoTypeOf(kind string) string {
+// 	switch kind {
+// 	case "INT32":
+// 		return "INT"
+// 	case "INT64":
+// 		return "BIGINT"
+// 	case "BOOL":
+// 		return "TINYINT"
+// 	case "STRING":
+// 		return "VARCHAR"
+// 	// 原生 SQL 變數類型，無須修改
+// 	default:
+// 		return kind
+// 	}
+// }
 
 func (s *mysql) DbToProto(kind string) string {
 	switch kind {

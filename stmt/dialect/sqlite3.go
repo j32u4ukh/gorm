@@ -104,10 +104,10 @@ func (s *sqlite3) SizeOf(dataType string, size int32) int32 {
 	}
 }
 
-// Protobuf 中的變數類型，轉為 SQL 中的變數類型
-func (s *sqlite3) ProtoTypeOf(kind string) string {
-	panic(fmt.Sprintf("invalid sql type %s", kind))
-}
+// // Protobuf 中的變數類型，轉為 SQL 中的變數類型
+// func (s *sqlite3) ProtoTypeOf(kind string) string {
+// 	panic(fmt.Sprintf("invalid sql type %s", kind))
+// }
 
 func (s *sqlite3) DbToProto(kind string) string {
 	panic(fmt.Sprintf("invalid sql type %s", kind))

@@ -57,8 +57,6 @@ func (s *maria) TypeOf(dataType string) string {
 	case datatype.BOOL:
 		return datatype.TINYINT
 	default:
-		// panic(fmt.Sprintf("Invalid variable type: %s.", dataType))
-		fmt.Printf("(s *maria) TypeOf | dataType: %s\n", dataType)
 		return datatype.VARCHAR
 	}
 }
@@ -98,26 +96,26 @@ func (s *maria) SizeOf(dataType string, size int32) int32 {
 	}
 }
 
-// Protobuf 中的變數類型，轉為 SQL 中的變數類型；若為原生 SQL 變數類型，則無須修改
-func (s *maria) ProtoTypeOf(kind string) string {
-	switch kind {
-	case "INT32":
-		return datatype.INT
-	case "INT64":
-		return datatype.BIGINT
-	case "BOOL":
-		return datatype.TINYINT
-	case "STRING":
-		fallthrough
-	case datatype.MESSAGE:
-		fallthrough
-	case datatype.MAP:
-		return datatype.VARCHAR
-	// 原生 SQL 變數類型，無須修改(EX: INT, TIMESTAMP)
-	default:
-		return kind
-	}
-}
+// // Protobuf 中的變數類型，轉為 SQL 中的變數類型；若為原生 SQL 變數類型，則無須修改
+// func (s *maria) ProtoTypeOf(kind string) string {
+// 	switch kind {
+// 	case "INT32":
+// 		return datatype.INT
+// 	case "INT64":
+// 		return datatype.BIGINT
+// 	case "BOOL":
+// 		return datatype.TINYINT
+// 	case "STRING":
+// 		fallthrough
+// 	case datatype.MESSAGE:
+// 		fallthrough
+// 	case datatype.MAP:
+// 		return datatype.VARCHAR
+// 	// 原生 SQL 變數類型，無須修改(EX: INT, TIMESTAMP)
+// 	default:
+// 		return kind
+// 	}
+// }
 
 func (s *maria) DbToProto(kind string) string {
 	switch kind {

@@ -44,22 +44,23 @@ func NewTableParam() *TableParam {
 
 	// Primary key 排序演算法設置
 	p.IndexType["PRIMARY"] = ALGO
-
 	return p
 }
 
-func (p *TableParam) ParserConfig(config string) {
-	// glog.Trace("gosql", "config: %s\n", config)
+func (p *TableParam) LoadConfig(config *TableParamConfig) {
+	var kind string
+	var indexs *IndexConfig
 
-	tpc, err := NewTableParamConfig(config)
-
-	if err != nil {
-		// glog.Error("gpsql", "Error: %+v", err)
-		return
+	for _, kind = range config.Primarys.Elements {
+		if !p.Primarys.Contains(kind) {
+			p.Primarys.Append(kind)
+		}
 	}
 
-	for _, indexs := range tpc.Uniques {
-		if indexs.Type == "" {
+	for _, indexs = range config.Uniques {
+		kind = strings.ToUpper(indexs.Type)
+
+		if kind == "" || kind == "DEFAULT" {
 			indexs.Type = ALGO
 		}
 
@@ -67,16 +68,16 @@ func (p *TableParam) ParserConfig(config string) {
 		p.AddIndex("UNIQUE", indexs.Name, indexs.Type, indexs.Columns...)
 	}
 
-	for _, indexs := range tpc.Indexs {
-		if indexs.Type == "" {
+	for _, indexs = range config.Indexs {
+		kind = strings.ToUpper(indexs.Type)
+
+		if kind == "" || kind == "DEFAULT" {
 			indexs.Type = ALGO
 		}
 
 		// 設置表格的 Index
 		p.AddIndex("INDEX", indexs.Name, indexs.Type, indexs.Columns...)
 	}
-
-	// glog.Trace("gosql", "tpc: %+v\n", tpc)
 }
 
 func (p *TableParam) AddPrimaryKey(key string, indexType string) {
@@ -370,10 +371,10 @@ type ColumnParam struct {
 	// 欄位設置表
 	defineMap map[string]string
 
-	config *ColumnParamConfig
+	Config *ColumnParamConfig
 }
 
-// 改以 DefineMap 的形式暫存各個欄位的額外設定值，考慮'先後順序'與'設定值之間的相互牽制'，
+// 以 Config 的形式暫存各個欄位的額外設定值，考慮'先後順序'與'設定值之間的相互牽制'，
 // 例如使用 AutoIncrement 的欄位要求必須是 PrimaryKey
 func NewColumnParam(number int, name string, kind string, dial dialect.SQLDialect, tags ...string) *ColumnParam {
 	kind = strings.ToUpper(kind)
@@ -391,8 +392,8 @@ func NewColumnParam(number int, name string, kind string, dial dialect.SQLDialec
 		Comment:      "",
 		dial:         dial,
 		defineMap:    map[string]string{},
-		config: &ColumnParamConfig{
-			Type: dialect.GetDialect(dial).ProtoTypeOf(kind),
+		Config: &ColumnParamConfig{
+			Type: dialect.GetDialect(dial).TypeOf(kind),
 		},
 	}
 
@@ -415,6 +416,29 @@ func NewColumnParam(number int, name string, kind string, dial dialect.SQLDialec
 	return param
 }
 
+func NewColumnParam2(number int, name string, kind string, dial dialect.SQLDialect) *ColumnParam {
+	kind = strings.ToUpper(kind)
+	param := &ColumnParam{
+		FieldNumber:  number,
+		Name:         name,
+		OriginType:   datatype.GetOriginType(kind),
+		Type:         kind,
+		Size:         0,
+		IsPrimaryKey: false,
+		IsUnsigned:   false,
+		CanNull:      false,
+		Default:      "NIL",
+		Update:       "",
+		Algo:         "",
+		Comment:      "",
+		dial:         dial,
+		defineMap:    map[string]string{},
+		Config:       &ColumnParamConfig{},
+	}
+
+	return param
+}
+
 func (p *ColumnParam) SetName(name string) {
 	p.Name = name
 }
@@ -422,6 +446,9 @@ func (p *ColumnParam) SetName(name string) {
 func (p *ColumnParam) SetType(dataType string) {
 	// 確保全大寫，以利設置欄位的預設大小
 	p.Type = strings.ToUpper(dataType)
+
+	// 儲存類型修正前的類型
+	p.OriginType = datatype.GetOriginType(p.Type)
 
 	// 根據實際使用的資料庫，對變數類型作修正
 	p.Type = dialect.GetDialect(p.dial).TypeOf(p.Type)
@@ -512,15 +539,17 @@ func (p *ColumnParam) String() string {
 }
 
 func (p *ColumnParam) parserConfig(config string) {
-	// glog.Trace("gosql", "tag: %s", tag)
 	cfg, err := NewColumnParamConfig(config)
 
 	if err != nil {
-		// glog.Error("gosql", "Error: %+v", err)
 		return
 	}
 
-	p.config.merge(cfg)
+	p.Config.merge(cfg)
+}
+
+func (p *ColumnParam) LoadConfig(config *ColumnParamConfig) {
+	p.Config.merge(config)
 }
 
 // 根據 defineMap 對 Param 進行再定義
@@ -532,8 +561,8 @@ func (p *ColumnParam) Redefine() {
 	// comment
 	// ====================================================================================================
 
-	if p.config.Comment != "" {
-		p.Comment = p.config.Comment
+	if p.Config.Comment != "" {
+		p.Comment = p.Config.Comment
 	}
 
 	// ====================================================================================================
@@ -552,9 +581,9 @@ func (p *ColumnParam) Redefine() {
 	// type
 	// ====================================================================================================
 
-	if p.config.Type != "" {
+	if p.Config.Type != "" {
 		// 確保全大寫，以利設置欄位的預設大小
-		p.Type = strings.ToUpper(p.config.Type)
+		p.Type = strings.ToUpper(p.Config.Type)
 	}
 
 	// 根據實際使用的資料庫，對變數類型作修正
@@ -568,8 +597,8 @@ func (p *ColumnParam) Redefine() {
 	// ====================================================================================================
 
 	// 僅允許 VARCHAR 設定 size
-	if p.config.Size > 0 && p.Type == datatype.VARCHAR {
-		p.Size = dialect.GetDialect(p.dial).SizeOf(p.Type, int32(p.config.Size))
+	if p.Config.Size > 0 && p.Type == datatype.VARCHAR {
+		p.Size = dialect.GetDialect(p.dial).SizeOf(p.Type, int32(p.Config.Size))
 
 	} else if p.OriginType == datatype.BOOL {
 		// bool 類型的數據，p.Type 會被轉換成 TINYINT，因此這裡針對 bool 類型的大小作額外處理
@@ -584,10 +613,10 @@ func (p *ColumnParam) Redefine() {
 	// unsigned
 	// ====================================================================================================
 
-	if p.config.Unsigned != "" {
+	if p.Config.Unsigned != "" {
 		// 數值類型才能設置 "是否沒有負數" 這項屬性
 		if kind == "INTEGER" || kind == "FLOAT" {
-			p.IsUnsigned = strings.ToUpper(p.config.Unsigned) == "TRUE"
+			p.IsUnsigned = strings.ToUpper(p.Config.Unsigned) == "TRUE"
 		}
 	}
 
@@ -595,8 +624,8 @@ func (p *ColumnParam) Redefine() {
 	// default
 	// ====================================================================================================
 
-	if p.config.Default != "" {
-		d := strings.ToUpper(p.config.Default)
+	if p.Config.Default != "" {
+		d := strings.ToUpper(p.Config.Default)
 
 		switch d {
 		case "NULL":
@@ -606,7 +635,7 @@ func (p *ColumnParam) Redefine() {
 			p.Default = d
 		// 其他則和設置值相同，不修改大小寫
 		default:
-			p.Default = p.config.Default
+			p.Default = p.Config.Default
 		}
 	}
 
@@ -614,10 +643,10 @@ func (p *ColumnParam) Redefine() {
 	// primary_key
 	// ====================================================================================================
 
-	if p.config.PrimaryKey != "" {
+	if p.Config.PrimaryKey != "" {
 		p.IsPrimaryKey = true
 		// p.CanNull = false
-		p.Algo = strings.ToUpper(p.config.PrimaryKey)
+		p.Algo = strings.ToUpper(p.Config.PrimaryKey)
 
 		if p.Algo == "DEFAULT" {
 			p.Algo = ALGO
@@ -638,14 +667,22 @@ func (p *ColumnParam) Redefine() {
 	// update
 	// ====================================================================================================
 
-	if p.config.Update != "" {
+	if p.Config.Update != "" {
 		switch p.Default {
 		case "current_timestamp()":
-			p.Update = p.config.Update
+			p.Update = p.Config.Update
 		case "NIL", "NULL":
 			fallthrough
 		default:
 			p.Update = ""
+		}
+	}
+
+	// MAP 與 MESSAGE 將以超長字串形式儲存
+	if p.OriginType == datatype.MAP || p.OriginType == datatype.MESSAGE {
+		// fmt.Printf("OriginType: %s, Type: %s\n", param.OriginType, param.Type)
+		if p.Size < 3000 {
+			p.Size = 3000
 		}
 	}
 }

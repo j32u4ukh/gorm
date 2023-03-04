@@ -44,7 +44,6 @@ func NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.Col
 		}
 		t.nColumn = int32(t.ColumnNames.Length())
 		t.InsertStmt.SetColumnNames(t.ColumnNames.Elements)
-		fmt.Printf("gdo.NewTable | ColumnNames(%d): %+v\n", t.nColumn, t.ColumnNames.Elements)
 	}
 	return t
 }
