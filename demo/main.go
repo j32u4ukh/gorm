@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/j32u4ukh/gorm/cls"
 	"github.com/j32u4ukh/gorm/gdo"
+	"github.com/j32u4ukh/gorm/stmt"
+	"github.com/j32u4ukh/gorm/stmt/datatype"
 	"github.com/j32u4ukh/gorm/stmt/dialect"
 )
 
@@ -13,33 +14,39 @@ type Desk struct {
 	Content string `gorm:"size=3000"`
 }
 
-func InitTable() *cls.StructTable {
-	desk := &Desk{}
-	tableParams, columnParams, err := cls.GetParams(desk, dialect.MARIA)
-	table := cls.NewStructTable("Desk", tableParams, columnParams, dialect.MARIA)
-	table.SetDbName("demo")
-	table.InitByStruct(desk)
-	if err != nil {
-		fmt.Printf("BuildCreateStmt err: %+v\n", err)
-		return nil
-	}
+func InitTable() *gdo.Table {
+	tableName := "StmtDesk"
+	tableParam := stmt.NewTableParam()
+
+	// NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string, dial string)
+	table := gdo.NewTable(tableName, tableParam, nil, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	table.SetDbName("demo2")
+	table.UseAntiInjection(true)
+	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
+	col1.SetPrimaryKey("default")
+	table.AddColumn(stmt.NewColumn(col1))
+
+	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
+	// col2.SetCanNull(true)
+	table.AddColumn(stmt.NewColumn(col2))
 	return table
 }
 
 func main() {
-	answer := "DELETE FROM `demo`.`Desk` WHERE `Id` = 3;"
+	answer := "INSERT INTO `demo2`.`StmtDesk` (`Id`, `Content`) VALUES (50, '\\'); SELECT * FROM `demo2`.`StmtDesk`; -- hack');"
 	table := InitTable()
-	// desk := &Desk{Id: 3, Content: "content"}
-	table.UseAntiInjection(true)
-	sql, err := table.BuildDeleteStmt(gdo.WS().Eq("Id", 3))
+	// map[string]any{"Id": 50, "Content": "'); SELECT * FROM `demo2`.`StmtDesk`; -- hack"}
+	table.Insert([]any{50, "'); SELECT * FROM `demo2`.`StmtDesk`; -- hack"}, nil)
+	sql, err := table.BuildInsertStmt()
 
-	if err != nil || sql != answer {
-		if err != nil {
-			fmt.Printf("TestInsert | Error: %+v\n", err)
-		}
+	if err != nil {
+		fmt.Printf("BuildCreateStmt err: %+v\n", err)
+		return
+	}
 
-		if sql != answer {
-			fmt.Printf("TestInsert |\nanswer: %s\nsql: %s", answer, sql)
-		}
+	if answer != sql {
+		fmt.Printf("answer: %s\nsql***: %s\n", answer, sql)
+	} else {
+		fmt.Printf("sql: %s\n", sql)
 	}
 }

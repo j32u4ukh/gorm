@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateStmt(t *testing.T) {
-	answer := "CREATE TABLE IF NOT EXISTS `Desk` (`Id` INT(11) NOT NULL, `Content` VARCHAR(3000) NOT NULL, PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
+	answer := "CREATE TABLE IF NOT EXISTS `Desk` (`Id` INT(11) NOT NULL DEFAULT 0, `Content` VARCHAR(3000) NOT NULL DEFAULT '', PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
 	tableParam := stmt.NewTableParam()
 	tableParam.AddPrimaryKey("Id", "default")
 
@@ -38,7 +38,7 @@ func TestCreateStmt(t *testing.T) {
 }
 
 func TestTableCreateStmt(t *testing.T) {
-	answer := "CREATE TABLE IF NOT EXISTS `Desk` (`Id` INT(11) NOT NULL, `Content` VARCHAR(3000) NOT NULL, PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
+	answer := "CREATE TABLE IF NOT EXISTS `Desk` (`Id` INT(11) NOT NULL DEFAULT 0, `Content` VARCHAR(3000) NOT NULL DEFAULT '', PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
 	tableParam := stmt.NewTableParam()
 	tableParam.AddPrimaryKey("Id", "default")
 
@@ -84,7 +84,7 @@ func TestInsertStmt(t *testing.T) {
 }
 
 func TestTableInsertStmt(t *testing.T) {
-	answer := "INSERT INTO `Desk` (`Id`, `Content`) VALUES (41, NIL), (42, 'not nil');"
+	answer := "INSERT INTO `Desk` (`Id`, `Content`) VALUES (41, ''), (42, 'not nil');"
 	tableParam := stmt.NewTableParam()
 	tableParam.AddPrimaryKey("Id", "default")
 	var err error

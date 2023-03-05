@@ -374,60 +374,15 @@ type ColumnParam struct {
 	Config *ColumnParamConfig
 }
 
-// 以 Config 的形式暫存各個欄位的額外設定值，考慮'先後順序'與'設定值之間的相互牽制'，
-// 例如使用 AutoIncrement 的欄位要求必須是 PrimaryKey
-func NewColumnParam(number int, name string, kind string, dial dialect.SQLDialect, tags ...string) *ColumnParam {
+func NewColumnParam(number int, name string, kind string, dial dialect.SQLDialect) *ColumnParam {
 	kind = strings.ToUpper(kind)
 	param := &ColumnParam{
 		FieldNumber:  number,
 		Name:         name,
-		OriginType:   datatype.GetOriginType(kind),
 		Size:         0,
 		IsPrimaryKey: false,
 		IsUnsigned:   false,
 		CanNull:      false,
-		Default:      "NIL",
-		Update:       "",
-		Algo:         "",
-		Comment:      "",
-		dial:         dial,
-		defineMap:    map[string]string{},
-		Config: &ColumnParamConfig{
-			Type: dialect.GetDialect(dial).TypeOf(kind),
-		},
-	}
-
-	// 根據 tag 內容對 Param 進行再定義
-	for _, tag := range tags {
-		param.parserConfig(tag)
-	}
-
-	// 根據 defineMap 對 Param 進行再定義
-	param.Redefine()
-
-	// MAP 與 MESSAGE 將以超長字串形式儲存
-	if param.OriginType == datatype.MAP || param.OriginType == datatype.MESSAGE {
-		// fmt.Printf("OriginType: %s, Type: %s\n", param.OriginType, param.Type)
-		if param.Size < 3000 {
-			param.Size = 3000
-		}
-	}
-
-	return param
-}
-
-func NewColumnParam2(number int, name string, kind string, dial dialect.SQLDialect) *ColumnParam {
-	kind = strings.ToUpper(kind)
-	param := &ColumnParam{
-		FieldNumber:  number,
-		Name:         name,
-		OriginType:   datatype.GetOriginType(kind),
-		Type:         kind,
-		Size:         0,
-		IsPrimaryKey: false,
-		IsUnsigned:   false,
-		CanNull:      false,
-		Default:      "NIL",
 		Update:       "",
 		Algo:         "",
 		Comment:      "",
@@ -435,7 +390,8 @@ func NewColumnParam2(number int, name string, kind string, dial dialect.SQLDiale
 		defineMap:    map[string]string{},
 		Config:       &ColumnParamConfig{},
 	}
-
+	param.SetType(kind)
+	param.SetDefault(dialect.GetDialect(param.dial).GetDefault(param.Type))
 	return param
 }
 
@@ -478,7 +434,7 @@ func (p *ColumnParam) SetPrimaryKey(algo string) {
 	} else {
 		// 確保非 Primary Key 欄位不會被設置成 Auto Increment
 		if p.Default == "AI" {
-			p.Default = "NIL"
+			p.Default = dialect.GetDialect(p.dial).GetDefault(p.Type)
 		}
 	}
 }
@@ -487,36 +443,14 @@ func (p *ColumnParam) SetUnsigned(isUnsigned bool) {
 	p.IsUnsigned = isUnsigned
 }
 
-// func (p *ColumnParam) SetCanNull(canNull bool) {
-// 	if p.IsPrimaryKey {
-// 		canNull = false
-// 	}
-
-// 	p.CanNull = canNull
-
-// 	if p.CanNull {
-// 		switch p.Default {
-// 		case "NIL":
-// 			p.Default = "NULL"
-// 		}
-
-// 	} else {
-// 		// 此欄位不可是 NULL
-// 		switch p.Default {
-// 		case "NULL":
-// 			p.Default = "NIL"
-// 		}
-// 	}
-// }
-
 func (p *ColumnParam) SetDefault(defaultValue string) {
 	d := strings.ToUpper(defaultValue)
 
 	switch d {
-	case "NULL":
-		p.Default = "NIL"
+	case "NULL", "NIL":
+		p.Default = dialect.GetDialect(p.dial).GetDefault(p.Type)
 	// AI, NIL 都設置為大寫
-	case "AI", "NIL":
+	case "AI":
 		p.Default = d
 	// 其他則和設置值相同，不修改大小寫
 	default:
@@ -534,27 +468,14 @@ func (p *ColumnParam) SetComment(comment string) {
 	p.Comment = comment
 }
 
-func (p *ColumnParam) String() string {
-	return fmt.Sprintf("FieldNumber: %d, Type: %s, Name: %s", p.FieldNumber, p.Type, p.Name)
-}
-
-func (p *ColumnParam) parserConfig(config string) {
-	cfg, err := NewColumnParamConfig(config)
-
-	if err != nil {
-		return
-	}
-
-	p.Config.merge(cfg)
-}
-
+// 以 Config 的形式暫存各個欄位的額外設定值，考慮'先後順序'與'設定值之間的相互牽制'，
+// 例如使用 AutoIncrement 的欄位要求必須是 PrimaryKey
 func (p *ColumnParam) LoadConfig(config *ColumnParamConfig) {
 	p.Config.merge(config)
 }
 
 // 根據 defineMap 對 Param 進行再定義
 func (p *ColumnParam) Redefine() {
-	// var ok bool
 	var kind string
 
 	// ====================================================================================================
@@ -566,19 +487,7 @@ func (p *ColumnParam) Redefine() {
 	}
 
 	// ====================================================================================================
-	// can_null: 取消可設置是否為空的彈性 2023/01/12
-	// ====================================================================================================
-
-	// if p.config.CanNull != "" {
-	// 	p.CanNull = strings.ToUpper(p.config.CanNull) == "TRUE"
-	// }
-
-	// if p.CanNull {
-	// 	p.Default = "NULL"
-	// }
-
-	// ====================================================================================================
-	// type
+	// Type
 	// ====================================================================================================
 
 	if p.Config.Type != "" {
@@ -625,18 +534,7 @@ func (p *ColumnParam) Redefine() {
 	// ====================================================================================================
 
 	if p.Config.Default != "" {
-		d := strings.ToUpper(p.Config.Default)
-
-		switch d {
-		case "NULL":
-			p.Default = "NIL"
-		// AI, NIL 都設置為大寫
-		case "AI", "NIL":
-			p.Default = d
-		// 其他則和設置值相同，不修改大小寫
-		default:
-			p.Default = p.Config.Default
-		}
+		p.SetDefault(p.Config.Default)
 	}
 
 	// ====================================================================================================
@@ -654,13 +552,13 @@ func (p *ColumnParam) Redefine() {
 	} else {
 		// 確保非 Primary Key 欄位不會被設置成 Auto Increment
 		if p.Default == "AI" {
-			p.Default = "NIL"
+			p.Default = dialect.GetDialect(p.dial).GetDefault(p.Type)
 		}
 	}
 
 	// Default 欄位不可為 NULL
 	if p.Default == "NULL" {
-		p.Default = "NIL"
+		p.Default = dialect.GetDialect(p.dial).GetDefault(p.Type)
 	}
 
 	// ====================================================================================================
@@ -687,67 +585,6 @@ func (p *ColumnParam) Redefine() {
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// ColumnParamSlice
-////////////////////////////////////////////////////////////////////////////////////////////////////
-type ColumnParamSlice []*ColumnParam
-
-func (p *ColumnParamSlice) Len() int {
-	return len(*p)
-}
-
-func (p *ColumnParamSlice) Less(i int, j int) bool {
-	return (*p)[i].FieldNumber < (*p)[j].FieldNumber
-}
-
-func (p *ColumnParamSlice) Swap(i int, j int) {
-	(*p)[i], (*p)[j] = (*p)[j], (*p)[i]
-}
-
-func (p *ColumnParamSlice) Sort() {
-	sort.Sort(p)
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// 傳入的 kind 就應該是全大寫，減少重複轉換大小寫
-// NOTE: 參考 https://www.796t.com/content/1502096161.html
-func ProtoSize(kind string, size int32) int32 {
-	if size <= 0 {
-		switch kind {
-		// Protobuf variable
-		case "INT32":
-			size = 11
-		case "INT64":
-			size = 20
-		case "BOOL":
-			size = 1
-		// Maria variable
-		case "INT":
-			size = 11
-		case "VARCHAR":
-			size = 3000
-		case "CHAR":
-			size = 50
-		}
-	}
-
-	switch kind {
-	// ==================================================
-	// DB 本身有其預設值，無法自定義大小的類型，一律回傳 -1
-	case "TIMESTAMP":
-		fallthrough
-	case "DOUBLE":
-		fallthrough
-	case "TINYTEXT":
-		fallthrough
-	case "TEXT":
-		fallthrough
-	case "MEDIUMTEXT":
-		fallthrough
-	case "LONGTEXT":
-		return 0
-	// ==================================================
-	default:
-		return size
-	}
+func (p *ColumnParam) String() string {
+	return fmt.Sprintf("FieldNumber: %d, Type: %s, Name: %s", p.FieldNumber, p.Type, p.Name)
 }

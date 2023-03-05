@@ -66,7 +66,6 @@ func NewColumn(param *ColumnParam) *Column {
 		Dial:         param.dial,
 		IgnoreThis:   param.IgnoreThis,
 	}
-
 	return column
 }
 
@@ -132,8 +131,8 @@ func (c *Column) SetPrimaryKey() {
 	c.IsPrimaryKey = true
 	c.CanNull = false
 
-	if c.Default == "NULL" {
-		c.Default = "NIL"
+	if c.Default == "" {
+		c.Default = dialect.GetDialect(c.Dial).GetDefault(c.Type)
 	}
 
 	if c.Algo == "" {

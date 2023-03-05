@@ -27,8 +27,8 @@ func InitTable() *cls.StructTable {
 	return table
 }
 
-func TestTableCreate(t *testing.T) {
-	answer := "CREATE TABLE IF NOT EXISTS `demo`.`Desk` (`Id` INT(11) NOT NULL, `Content` VARCHAR(3000) NOT NULL COLLATE 'utf8mb4_bin', PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
+func TestCreate(t *testing.T) {
+	answer := "CREATE TABLE IF NOT EXISTS `demo`.`Desk` (`Id` INT(11) NOT NULL DEFAULT 0, `Content` VARCHAR(3000) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin', PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
 	table := InitTable()
 	sql, err := table.BuildCreateStmt()
 	fmt.Printf("sql: %s\n", sql)
@@ -44,7 +44,7 @@ func TestTableCreate(t *testing.T) {
 	}
 }
 
-func TestTableInsert(t *testing.T) {
+func TestInsert(t *testing.T) {
 	answer := "INSERT INTO `demo`.`Desk` (`Id`, `Content`) VALUES (3, 'content');"
 	table := InitTable()
 	desk := &Desk{Id: 3, Content: "content"}
@@ -63,7 +63,7 @@ func TestTableInsert(t *testing.T) {
 	}
 }
 
-func TestTableQuery(t *testing.T) {
+func TestQuery(t *testing.T) {
 	answer := "SELECT * FROM `demo`.`Desk` WHERE `Id` = 3;"
 	table := InitTable()
 	// desk := &Desk{Id: 3, Content: "content"}
@@ -81,7 +81,7 @@ func TestTableQuery(t *testing.T) {
 	}
 }
 
-func TestTableUpdate(t *testing.T) {
+func TestUpdate(t *testing.T) {
 	answer := "UPDATE `demo`.`Desk` SET `Id` = 3, `Content` = 'content' WHERE `Id` = 3;"
 	table := InitTable()
 	desk := &Desk{Id: 3, Content: "content"}

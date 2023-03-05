@@ -117,22 +117,68 @@ func (s *maria) SizeOf(dataType string, size int32) int32 {
 // 	}
 // }
 
-func (s *maria) DbToProto(kind string) string {
-	switch kind {
-	case "INT":
-		return "int32"
-	case "BIGINT":
-		return "int64"
-	case "TINYINT":
-		return "bool"
-	default:
-		return "string"
-	}
-}
+// func (s *maria) DbToProto(kind string) string {
+// 	switch kind {
+// 	case "INT":
+// 		return "int32"
+// 	case "BIGINT":
+// 		return "int64"
+// 	case "TINYINT":
+// 		return "bool"
+// 	default:
+// 		return "string"
+// 	}
+// }
 
-// 表格是否存在的 SQL 語法
-func (s *maria) IsTableExistsStmt(tableName string) string {
-	return fmt.Sprintf("SELECT table_name FROM information_schema.tables WHERE TABLE_NAME = '%s';", tableName)
+// // 表格是否存在的 SQL 語法
+// func (s *maria) IsTableExistsStmt(tableName string) string {
+// 	return fmt.Sprintf("SELECT table_name FROM information_schema.tables WHERE TABLE_NAME = '%s';", tableName)
+// }
+
+func (s *maria) GetDefault(dataType string) string {
+	switch dataType {
+	case datatype.TINYINT:
+		fallthrough
+	case datatype.SMALLINT:
+		fallthrough
+	case datatype.MEDIUMINT:
+		fallthrough
+	case datatype.INT:
+		fallthrough
+	case datatype.BIGINT:
+		fallthrough
+	case datatype.FLOAT:
+		fallthrough
+	case datatype.DOUBLE:
+		fallthrough
+	case datatype.DEMICAL:
+		return "0"
+	case datatype.VARCHAR:
+		fallthrough
+	case datatype.CHAR:
+		fallthrough
+	case datatype.TINYTEXT:
+		fallthrough
+	case datatype.TEXT:
+		fallthrough
+	case datatype.MEDIUMTEXT:
+		fallthrough
+	case datatype.LONGTEXT:
+		return "''"
+	// current_timestamp()
+	case datatype.DATE:
+		return "'1970-01-01'"
+	case datatype.TIME:
+		return "'00:00:00'"
+	case datatype.YEAR:
+		return "1970"
+	case datatype.DATETIME:
+		return "'1970-01-01 00:00:00'"
+	case datatype.TIMESTAMP:
+		return "'1970-01-01 00:00:01'"
+	default:
+		panic(fmt.Sprintf("Invalid variable type: %s.", dataType))
+	}
 }
 
 // 是否可適用排序演算法

@@ -30,7 +30,7 @@ func GetParams(data any, dial dialect.SQLDialect) (*stmt.TableParam, []*stmt.Col
 
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
-		columnParam := stmt.NewColumnParam2(i, field.Name, field.Type.Kind().String(), dial)
+		columnParam := stmt.NewColumnParam(i, field.Name, field.Type.Kind().String(), dial)
 		config, ok := field.Tag.Lookup("gorm")
 
 		if ok {

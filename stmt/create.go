@@ -30,6 +30,7 @@ func NewCreateStmt(name string, tableParam *TableParam, columnParams []*ColumnPa
 	if columnParams != nil {
 		var column *Column
 		for _, param := range columnParams {
+			fmt.Printf("param: %+v\n", param)
 			column = NewColumn(param)
 			column.SetCollate(collate)
 			s.AddColumn(column)
