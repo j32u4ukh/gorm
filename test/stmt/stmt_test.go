@@ -389,6 +389,7 @@ func TestBatchUpdate(t *testing.T) {
 	bus.Update("2", "length", "6")
 	bus.Update("2", "width", "5")
 	sql, err := bus.ToStmt()
+
 	if err != nil {
 		fmt.Printf("err: %+v\n", err)
 		return
