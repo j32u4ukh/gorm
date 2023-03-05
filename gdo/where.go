@@ -107,9 +107,7 @@ func (s *WhereStmt) Between(key string, value1 any, value2 any) *WhereStmt {
 func (s *WhereStmt) In(key string, values ...any) *WhereStmt {
 	s.op = "In"
 	s.values = []any{key}
-	for _, value := range values {
-		s.values = append(s.values, value)
-	}
+	s.values = append(s.values, values...)
 	return s
 }
 
