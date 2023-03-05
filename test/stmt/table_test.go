@@ -20,7 +20,6 @@ func TestTableCreateStmt(t *testing.T) {
 	table.AddColumn(stmt.NewColumn(col1))
 
 	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	// col2.SetCanNull(true)
 	table.AddColumn(stmt.NewColumn(col2))
 
 	sql, err := table.BuildCreateStmt()
