@@ -147,7 +147,8 @@ func (g *Gstmt) Count(tid byte, where *gdo.WhereStmt) (string, error) {
 func (g *Gstmt) Update(tid byte, data any, where *gdo.WhereStmt) (string, error) {
 	if table, ok := g.tables[tid]; ok {
 		table.InitByStruct(data)
-		sql, err := table.Update(data, where)
+		table.Update(data, where)
+		sql, err := table.BuildUpdateStmt()
 		if err != nil {
 			return "", errors.Wrap(err, "生成 Update 語法時發生錯誤")
 		}
