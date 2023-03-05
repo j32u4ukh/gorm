@@ -7,6 +7,7 @@ import (
 
 	"github.com/j32u4ukh/cntr"
 	"github.com/j32u4ukh/gorm/database"
+	"github.com/j32u4ukh/gorm/gdo"
 	"github.com/j32u4ukh/gorm/stmt"
 	"github.com/j32u4ukh/gorm/stmt/datatype"
 	"github.com/j32u4ukh/gorm/stmt/dialect"
@@ -48,20 +49,27 @@ func main() {
 	}
 }
 
-func CreateDemo() {
+func InitTable() *gdo.Table {
+	tableName := "Desk"
 	tableParam := stmt.NewTableParam()
-	tableParam.AddPrimaryKey("Id", "default")
 
-	cs := stmt.NewCreateStmt("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
-
+	// NewTable(name string, tableParam *stmt.TableParam, columnParams []*stmt.ColumnParam, engine string, collate string, dial string)
+	table := gdo.NewTable(tableName, tableParam, nil, stmt.ENGINE, stmt.COLLATE, dialect.MARIA)
+	table.SetDbName("pekomiko")
+	table.UseAntiInjection(true)
 	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
 	col1.SetPrimaryKey("default")
-	cs.AddColumn(stmt.NewColumn(col1))
+	table.AddColumn(stmt.NewColumn(col1))
 
 	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	cs.AddColumn(stmt.NewColumn(col2))
+	// col2.SetCanNull(true)
+	table.AddColumn(stmt.NewColumn(col2))
+	return table
+}
 
-	sql, err := cs.ToStmt()
+func CreateDemo() {
+	table := InitTable()
+	sql, err := table.BuildCreateStmt()
 
 	if err != nil {
 		return
@@ -70,7 +78,7 @@ func CreateDemo() {
 	result, err := db.Exec(sql)
 
 	if err != nil {
-		fmt.Printf("Create err: %+v\n", err)
+		fmt.Printf("Create err: %+v\nsql: %s\n", err, sql)
 		return
 	}
 
@@ -78,12 +86,11 @@ func CreateDemo() {
 }
 
 func InsertDemo() {
-	is := stmt.NewInsertStmt("Desk")
-	is.SetColumnNames([]string{"Id", "Content"})
+	table := InitTable()
 	for i := 1; i <= 10; i++ {
-		is.Insert([]string{fmt.Sprintf("%d", 40+i), fmt.Sprintf("'content%d'", i)})
+		table.Insert([]any{40 + i, fmt.Sprintf("'content%d'", i)}, nil)
 	}
-	sql, err := is.ToStmt()
+	sql, err := table.BuildInsertStmt()
 
 	if err != nil {
 		return
@@ -100,12 +107,13 @@ func InsertDemo() {
 }
 
 func QueryDemo() {
-	sql, err := stmt.NewSelectStmt("Desk").
-		SetOrderBy("Id").
+	table := InitTable()
+	table.SetOrderBy("Id").
 		WhetherReverseOrder(true).
 		SetLimit(5).
-		SetOffset(2).
-		ToStmt()
+		SetOffset(2)
+
+	sql, err := table.BuildSelectStmt()
 
 	if err != nil {
 		return
@@ -115,7 +123,7 @@ func QueryDemo() {
 	result, err := db.Query(sql)
 
 	if err != nil {
-		fmt.Printf("Query err: %+v\n", err)
+		fmt.Printf("Create err: %+v\n", err)
 		return
 	}
 
@@ -126,12 +134,10 @@ func QueryDemo() {
 }
 
 func UpdateDemo() {
-	update := stmt.NewUpdateStmt("Desk")
-	update.SetCondition(stmt.WS().Eq("Id", "42"))
-	sql, err := update.
-		Update("Id", "42").
-		Update("Content", "'Hello'").
-		ToStmt()
+	table := InitTable()
+	table.SetUpdateCondition(gdo.WS().Eq("Id", 42))
+	table.Update("Content", "'Hello'", nil)
+	sql, err := table.BuildUpdateStmt()
 
 	if err != nil {
 		return
@@ -140,7 +146,7 @@ func UpdateDemo() {
 	result, err := db.Exec(sql)
 
 	if err != nil {
-		fmt.Printf("Update err: %+v\n", err)
+		fmt.Printf("Create err: %+v\n", err)
 		return
 	}
 
@@ -148,31 +154,30 @@ func UpdateDemo() {
 }
 
 func BatchUpdateDemo() {
-	bus := stmt.NewBatchUpdateStmt("Desk", "Id")
-	bus.Update("41", "Content", "3")
-	bus.Update("43", "Content", "4")
-	bus.Update("45", "Content", "6")
-	sql, err := bus.ToStmt()
+	// bus := stmt.NewBatchUpdateStmt("Desk", "Id")
+	// bus.Update("41", "Content", "3")
+	// bus.Update("43", "Content", "4")
+	// bus.Update("45", "Content", "6")
+	// sql, err := bus.ToStmt()
 
-	if err != nil {
-		return
-	}
+	// if err != nil {
+	// 	return
+	// }
 
-	result, err := db.Exec(sql)
+	// result, err := db.Exec(sql)
 
-	if err != nil {
-		fmt.Printf("BatchUpdate err: %+v\n", err)
-		return
-	}
+	// if err != nil {
+	// 	fmt.Printf("Create err: %+v\n", err)
+	// 	return
+	// }
 
-	fmt.Printf("result: %s\n", result)
+	// fmt.Printf("result: %s\n", result)
 }
 
 func DeleteDemo() {
-	del := stmt.NewDeleteStmt("Desk")
-	del.SetDbName("pekomiko")
-	del.SetCondition(stmt.WS().Eq("Id", "49"))
-	sql, err := del.ToStmt()
+	table := InitTable()
+	table.SetDeleteCondition(gdo.WS().Eq("Id", 49))
+	sql, err := table.BuildDeleteStmt()
 
 	if err != nil {
 		return
@@ -181,7 +186,7 @@ func DeleteDemo() {
 	result, err := db.Exec(sql)
 
 	if err != nil {
-		fmt.Printf("Delete err: %+v\n", err)
+		fmt.Printf("Create err: %+v\n", err)
 		return
 	}
 
