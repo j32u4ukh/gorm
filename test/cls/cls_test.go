@@ -31,7 +31,6 @@ func TestCreate(t *testing.T) {
 	answer := "CREATE TABLE IF NOT EXISTS `demo`.`Desk` (`Id` INT(11) NOT NULL DEFAULT 0, `Content` VARCHAR(3000) NOT NULL DEFAULT '' COLLATE 'utf8mb4_bin', PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
 	table := InitTable()
 	sql, err := table.BuildCreateStmt()
-	fmt.Printf("sql: %s\n", sql)
 
 	if err != nil || sql != answer {
 		if err != nil {

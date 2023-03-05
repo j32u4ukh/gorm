@@ -52,30 +52,6 @@ func (s *CreateStmt) SetCollate(collate string) {
 	s.Collate = collate
 }
 
-func (s *CreateStmt) SetTableParam(tableParam *TableParam) {
-	paramNames := tableParam.GetAllColumns().Elements
-	var column *Column
-	var ok bool
-
-	// 檢查 indexName 和 columnName 是否匹配
-	for _, name := range paramNames {
-		ok = false
-
-		for _, column = range s.Columns {
-			if column.Name == name {
-				ok = true
-				break
-			}
-		}
-
-		if !ok {
-			fmt.Printf("(s *CreateStmt) SetTableParam | Column %s should not in tableParam.", name)
-		}
-	}
-
-	s.TableParam = tableParam.Clone()
-}
-
 func (s *CreateStmt) GetTableParam() *TableParam {
 	return s.TableParam
 }
@@ -97,8 +73,12 @@ func (s *CreateStmt) ToStmt() (string, error) {
 	// 		"PRIMARY KEY (`id`)",
 	// )ENGINE=InnoDB COLLATE=utf8mb4_bin
 	stmts := []string{}
+	var column *Column
 
-	for _, column := range s.Columns {
+	for _, column = range s.Columns {
+		if column.IgnoreThis {
+			continue
+		}
 		stmts = append(stmts, column.ToStmt())
 	}
 
@@ -117,6 +97,8 @@ func (s *CreateStmt) ToStmt() (string, error) {
 	if s.TableParam != nil {
 		var kind, indexName, indexType string
 		var cols []string
+
+		// 0: kind string, 1: indexName string, 2: indexType string, 3: cols *array.Array[string]
 		it := s.TableParam.IterIndexMap()
 
 		for it.HasNext() {
