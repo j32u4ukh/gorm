@@ -47,6 +47,7 @@ func TestCreate(t *testing.T) {
 
 func TestInsert(t *testing.T) {
 	answer := "INSERT INTO `demo2`.`StmtDesk` (`Id`, `Content`) VALUES (50, '\\'); SELECT * FROM `demo2`.`StmtDesk`; -- hack');"
+	// 		   INSERT INTO `demo2`.`StmtDesk`  VALUES (50, '\'); SELECT * FROM `demo2`.`StmtDesk`; -- hack');
 	table := InitTable()
 	// map[string]any{"Id": 50, "Content": "'); SELECT * FROM `demo2`.`StmtDesk`; -- hack"}
 	table.Insert([]any{50, "'); SELECT * FROM `demo2`.`StmtDesk`; -- hack"}, nil)
@@ -58,7 +59,7 @@ func TestInsert(t *testing.T) {
 		}
 
 		if sql != answer {
-			t.Errorf(fmt.Sprintf("TestInsert |\nanswer: %s\nql: %s", answer, sql))
+			t.Errorf(fmt.Sprintf("TestInsert |\nanswer: %s\nsql: %s", answer, sql))
 		}
 	}
 }
