@@ -7,7 +7,7 @@ import (
 	"github.com/j32u4ukh/gorm/stmt"
 )
 
-func (t *StructTable) Update(data any, where *gdo.WhereStmt) (string, error) {
+func (t *StructTable) Update(data any, where *gdo.WhereStmt) {
 	var rv, field reflect.Value
 	var column *stmt.Column
 	var i int
@@ -42,6 +42,6 @@ func (t *StructTable) Update(data any, where *gdo.WhereStmt) (string, error) {
 		t.Table.SetUpdateCondition(where)
 	}
 
-	sql, err := t.BuildUpdateStmt()
-	return sql, err
+	// sql, err := t.BuildUpdateStmt()
+	// return sql, err
 }

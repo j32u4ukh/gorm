@@ -86,7 +86,8 @@ func TestUpdate(t *testing.T) {
 	table := InitTable()
 	desk := &Desk{Id: 3, Content: "content"}
 	table.UseAntiInjection(true)
-	sql, err := table.Update(desk, gdo.WS().Eq("Id", 3))
+	table.Update(desk, gdo.WS().Eq("Id", 3))
+	sql, err := table.BuildUpdateStmt()
 
 	if err != nil || sql != answer {
 		if err != nil {
