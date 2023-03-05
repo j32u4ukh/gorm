@@ -169,24 +169,10 @@ func BatchUpdateDemo() {
 }
 
 func DeleteDemo() {
-	tableParam := stmt.NewTableParam()
-	tableParam.AddPrimaryKey("Id", "default")
-
-	/////////////////////////////////////////////////////////////////////
-	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
-	table.SetDbName("pekomiko")
-
-	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
-	col1.SetPrimaryKey("default")
-	table.AddColumn(stmt.NewColumn(col1))
-
-	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	// col2.SetCanNull(true)
-	table.AddColumn(stmt.NewColumn(col2))
-	/////////////////////////////////////////////////////////////////////
-
-	table.SetDeleteCondition(stmt.WS().Eq("Id", "47"))
-	sql, err := table.BuildDeleteStmt()
+	del := stmt.NewDeleteStmt("Desk")
+	del.SetDbName("pekomiko")
+	del.SetCondition(stmt.WS().Eq("Id", "49"))
+	sql, err := del.ToStmt()
 
 	if err != nil {
 		return
@@ -200,5 +186,4 @@ func DeleteDemo() {
 	}
 
 	fmt.Printf("result: %s\n", result)
-
 }
