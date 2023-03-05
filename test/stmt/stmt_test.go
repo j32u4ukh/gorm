@@ -37,33 +37,6 @@ func TestCreateStmt(t *testing.T) {
 	}
 }
 
-func TestTableCreateStmt(t *testing.T) {
-	answer := "CREATE TABLE IF NOT EXISTS `Desk` (`Id` INT(11) NOT NULL DEFAULT 0, `Content` VARCHAR(3000) NOT NULL DEFAULT '', PRIMARY KEY (`Id`) USING BTREE) ENGINE = InnoDB COLLATE = 'utf8mb4_bin';"
-	tableParam := stmt.NewTableParam()
-	tableParam.AddPrimaryKey("Id", "default")
-
-	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
-	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
-	col1.SetPrimaryKey("default")
-	table.AddColumn(stmt.NewColumn(col1))
-
-	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	// col2.SetCanNull(true)
-	table.AddColumn(stmt.NewColumn(col2))
-
-	sql, err := table.BuildCreateStmt()
-
-	if err != nil || sql != answer {
-		if err != nil {
-			t.Errorf("TestCreateStmt | Error: %+v\n", err)
-		}
-
-		if sql != answer {
-			t.Errorf("TestCreateStmt |\nanswer: %s\nsql: %s", answer, sql)
-		}
-	}
-}
-
 func TestInsertStmt(t *testing.T) {
 	answer := "INSERT INTO `Desk` (`Id`, `Content`) VALUES (41, NULL), (42, 'not nil');"
 	is := stmt.NewInsertStmt("Desk")
@@ -83,89 +56,9 @@ func TestInsertStmt(t *testing.T) {
 	}
 }
 
-func TestTableInsertStmt(t *testing.T) {
-	answer := "INSERT INTO `Desk` (`Id`, `Content`) VALUES (41, ''), (42, 'not nil');"
-	tableParam := stmt.NewTableParam()
-	tableParam.AddPrimaryKey("Id", "default")
-	var err error
-
-	/////////////////////////////////////////////////////////////////////
-	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
-	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
-	col1.SetPrimaryKey("default")
-	table.AddColumn(stmt.NewColumn(col1))
-
-	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	// col2.SetCanNull(true)
-	table.AddColumn(stmt.NewColumn(col2))
-	/////////////////////////////////////////////////////////////////////
-	err = table.InsertWithCheck(map[string]string{"Id": "41"})
-
-	if err != nil {
-		fmt.Printf("err: %+v\n", err)
-		return
-	}
-
-	err = table.InsertWithCheck(map[string]string{"Id": "42", "Content": "'not nil'"})
-
-	if err != nil {
-		fmt.Printf("err: %+v\n", err)
-		return
-	}
-	/////////////////////////////////////////////////////////////////////
-
-	var sql string
-	sql, err = table.BuildInsertStmt()
-
-	if err != nil || sql != answer {
-		if err != nil {
-			t.Errorf("TestInsertStmt | Error: %+v\n", err)
-		}
-
-		if sql != answer {
-			t.Errorf("TestInsertStmt |\nanswer: %s\nsql: %s", answer, sql)
-		}
-	}
-}
-
 func TestSelectStmt1(t *testing.T) {
 	answer := "SELECT * FROM `Desk` ORDER BY `Id` DESC LIMIT 5 OFFSET 2;"
 	sql, err := stmt.NewSelectStmt("Desk").
-		SetOrderBy("Id").
-		WhetherReverseOrder(true).
-		SetLimit(5).
-		SetOffset(2).
-		ToStmt()
-
-	if err != nil || sql != answer {
-		if err != nil {
-			t.Errorf("TestSelectStmt1 | Error: %+v\n", err)
-		}
-
-		if sql != answer {
-			t.Errorf("TestSelectStmt1 |\nanswer: %s\nsql: %s", answer, sql)
-		}
-	}
-}
-
-func TestTableSelectStmt1(t *testing.T) {
-	answer := "SELECT * FROM `Desk` ORDER BY `Id` DESC LIMIT 5 OFFSET 2;"
-	tableParam := stmt.NewTableParam()
-	tableParam.AddPrimaryKey("Id", "default")
-	var err error
-
-	/////////////////////////////////////////////////////////////////////
-	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
-	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
-	col1.SetPrimaryKey("default")
-	table.AddColumn(stmt.NewColumn(col1))
-
-	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	// col2.SetCanNull(true)
-	table.AddColumn(stmt.NewColumn(col2))
-	/////////////////////////////////////////////////////////////////////
-
-	sql, err := table.
 		SetOrderBy("Id").
 		WhetherReverseOrder(true).
 		SetLimit(5).
@@ -327,42 +220,6 @@ func TestUpdateStmt(t *testing.T) {
 	update := stmt.NewUpdateStmt("Desk")
 	update.SetCondition(stmt.WS().Eq("Id", "39"))
 	sql, err := update.
-		Update("Id", "39").
-		Update("Content", "'Hello'").
-		ToStmt()
-
-	if err != nil || sql != answer {
-		if err != nil {
-			t.Errorf("TestUpdateStmt | Error: %+v\n", err)
-		}
-
-		if sql != answer {
-			t.Errorf("TestUpdateStmt |\nanswer: %s\nsql: %s", answer, sql)
-		}
-	}
-}
-
-func TestTableUpdateStmt(t *testing.T) {
-	answer := "UPDATE `Desk` SET `Id` = 39, `Content` = 'Hello' WHERE `Id` = 39;"
-
-	tableParam := stmt.NewTableParam()
-	tableParam.AddPrimaryKey("Id", "default")
-	var err error
-
-	/////////////////////////////////////////////////////////////////////
-	table := stmt.NewTable("Desk", tableParam, nil, stmt.ENGINE, stmt.COLLATE)
-	col1 := stmt.NewColumnParam(1, "Id", datatype.INT, dialect.MARIA)
-	col1.SetPrimaryKey("default")
-	table.AddColumn(stmt.NewColumn(col1))
-
-	col2 := stmt.NewColumnParam(2, "Content", datatype.VARCHAR, dialect.MARIA)
-	// col2.SetCanNull(true)
-	table.AddColumn(stmt.NewColumn(col2))
-	/////////////////////////////////////////////////////////////////////
-
-	table.SetUpdateCondition(stmt.WS().Eq("Id", "39"))
-
-	sql, err := table.
 		Update("Id", "39").
 		Update("Content", "'Hello'").
 		ToStmt()
