@@ -65,7 +65,6 @@ func TestInsert(t *testing.T) {
 func TestQuery(t *testing.T) {
 	answer := "SELECT * FROM `demo`.`Desk` WHERE `Id` = 3;"
 	table := InitTable()
-	// desk := &Desk{Id: 3, Content: "content"}
 	table.UseAntiInjection(true)
 	sql, err := table.BuildSelectStmt(gdo.WS().Eq("Id", 3))
 

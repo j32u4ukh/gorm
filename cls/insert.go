@@ -35,7 +35,7 @@ func (t *StructTable) Insert(datas []any) error {
 		}
 
 		// 將數據加入 insert 緩存(傳入數據由 ProtoMessage 生成，因此所有欄位一定都在，且依照欄位順序)
-		t.Table.InsertRawData(data...)
+		t.Table.InsertRawData(data)
 	}
 	return nil
 }

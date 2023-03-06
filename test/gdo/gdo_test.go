@@ -48,7 +48,6 @@ func TestCreate(t *testing.T) {
 func TestInsert(t *testing.T) {
 	answer := "INSERT INTO `demo2`.`StmtDesk` (`Id`, `Content`) VALUES (50, '\\'); SELECT * FROM `demo2`.`StmtDesk`; -- hack');"
 	table := InitTable()
-	// map[string]any{"Id": 50, "Content": "'); SELECT * FROM `demo2`.`StmtDesk`; -- hack"}
 	table.Insert([]any{50, "'); SELECT * FROM `demo2`.`StmtDesk`; -- hack"}, nil)
 	sql, err := table.BuildInsertStmt()
 
@@ -58,7 +57,7 @@ func TestInsert(t *testing.T) {
 		}
 
 		if sql != answer {
-			t.Errorf(fmt.Sprintf("TestInsert |\nanswer: %s\nql: %s", answer, sql))
+			t.Errorf(fmt.Sprintf("TestInsert |\nanswer: %s\nsql: %s", answer, sql))
 		}
 	}
 }
@@ -105,13 +104,13 @@ func TestWhere2(t *testing.T) {
 }
 
 func TestTableSelect(t *testing.T) {
-	answer := "SELECT * FROM `demo2`.`StmtDesk` WHERE `Content` = '\\' OR \\'1\\'=\\'1';"
+	answer := "SELECT * FROM `demo2`.`StmtDesk` ORDER BY `Id` DESC LIMIT 5 OFFSET 2;"
 	table := InitTable()
 
-	// selector := gdo.NewSelectStmt("StmtDesk")
-	// selector.SetDbName("demo2")
-	where := gdo.WS().Eq("Content", "' OR '1'='1")
-	table.SetSelectCondition(where)
+	table.SetOrderBy("Id").
+		WhetherReverseOrder(true).
+		SetLimit(5).
+		SetOffset(2)
 	sql, err := table.BuildSelectStmt()
 
 	if err != nil || sql != answer {
@@ -125,6 +124,7 @@ func TestTableSelect(t *testing.T) {
 	}
 
 }
+
 func TestTableUpdte(t *testing.T) {
 	answer := "UPDATE `demo2`.`StmtDesk` SET `Content` = '123' WHERE `Content` = '\\'; SELECT * FROM `demo2`.`StmtDesk`; -- hack';"
 	table := InitTable()

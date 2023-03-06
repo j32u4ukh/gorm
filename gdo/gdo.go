@@ -75,7 +75,7 @@ func SetValue(field reflect.Value, value []byte, setPointer func(reflect.Value, 
 		v, _ := strconv.ParseInt(string(value), 10, 64)
 		field.SetInt(int64(v))
 	case reflect.Float32, reflect.Float64:
-		v, _ := strconv.ParseFloat(string(value), 10)
+		v, _ := strconv.ParseFloat(string(value), 32)
 		field.SetFloat(v)
 	case reflect.String:
 		field.SetString(string(value))
@@ -121,7 +121,7 @@ func MapKey(kind reflect.Kind, key string) reflect.Value {
 }
 
 func MapValue(kind reflect.Kind, value any) reflect.Value {
-	switch value.(type) {
+	switch vt := value.(type) {
 	case float64:
 		v := value.(float64)
 		switch kind {
@@ -133,6 +133,7 @@ func MapValue(kind reflect.Kind, value any) reflect.Value {
 			return reflect.ValueOf(int(v))
 		}
 	default:
+		fmt.Printf("MapValue | value.(type): %+v\n", vt)
 		return reflect.ValueOf(value)
 	}
 }
