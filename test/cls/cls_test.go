@@ -66,7 +66,8 @@ func TestQuery(t *testing.T) {
 	answer := "SELECT * FROM `demo`.`Desk` WHERE `Id` = 3;"
 	table := InitTable()
 	table.UseAntiInjection(true)
-	sql, err := table.BuildSelectStmt(gdo.WS().Eq("Id", 3))
+	table.SetSelectCondition(gdo.WS().Eq("Id", 3))
+	sql, err := table.BuildSelectStmt()
 
 	if err != nil || sql != answer {
 		if err != nil {

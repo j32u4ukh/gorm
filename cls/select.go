@@ -10,11 +10,7 @@ import (
 )
 
 // 根據 ProtoMessage 生成 SQL 的查詢語法，m 須包含 table 的 primary key
-func (t *StructTable) BuildSelectStmt(where *gdo.WhereStmt) (string, error) {
-	if where != nil {
-		t.Table.SetSelectCondition(where)
-	}
-
+func (t *StructTable) BuildSelectStmt() (string, error) {
 	sql, err := t.Table.BuildSelectStmt()
 
 	if err != nil {
@@ -56,7 +52,8 @@ func (t *StructTable) parseSelectResult(data any, result []string) error {
 // 取得符合 WhereStmt 條件的數據筆數
 func (t *StructTable) CountStmt(where *gdo.WhereStmt) string {
 	t.CountMode()
-	sql, err := t.BuildSelectStmt(where)
+	t.SetSelectCondition(where)
+	sql, err := t.BuildSelectStmt()
 	if err != nil {
 		return ""
 	}

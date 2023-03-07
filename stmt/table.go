@@ -42,13 +42,12 @@ func NewTable(name string, tableParam *TableParam, columnParams []*ColumnParam, 
 	return t
 }
 
-func (t *Table) SetDbName(dbName string) *Table {
+func (t *Table) SetDbName(dbName string) {
 	t.CreateStmt.SetDbName(dbName)
 	t.InsertStmt.SetDbName(dbName)
 	t.SelectStmt.SetDbName(dbName)
 	t.UpdateStmt.SetDbName(dbName)
 	t.DeleteStmt.SetDbName(dbName)
-	return t
 }
 
 func (t *Table) GetDbName() string {

@@ -6,11 +6,14 @@ import (
 	"strings"
 
 	"github.com/j32u4ukh/cntr"
-	"github.com/j32u4ukh/gorm/cls"
+	"github.com/j32u4ukh/gorm"
 	"github.com/j32u4ukh/gorm/database"
 	"github.com/j32u4ukh/gorm/gdo"
 	"github.com/j32u4ukh/gorm/stmt/dialect"
 )
+
+const GIndex byte = 0
+const TID byte = 0
 
 var db *database.Database
 
@@ -29,6 +32,8 @@ func main() {
 		return
 	}
 	defer db.Close()
+
+	gorm.SetGorm(GIndex, dc.Name, dialect.MARIA)
 
 	switch command {
 	case "c":
@@ -53,27 +58,30 @@ type Desk struct {
 	Content string `gorm:"size=3000"`
 }
 
-func InitTable() *cls.StructTable {
+func InitTable() *gorm.Gorm {
 	desk := &Desk{}
-	tableParams, columnParams, err := cls.GetParams(desk, dialect.MARIA)
-	table := cls.NewStructTable("Desk", tableParams, columnParams, dialect.MARIA)
+	g, _ := gorm.GetGorm(GIndex)
+	err := g.SetTable(TID, "Desk", dialect.MARIA, desk)
+	if err != nil {
+		fmt.Printf("SetTable err: %+v\n", err)
+		return nil
+	}
+	table := g.GetTable(TID)
 	table.SetDbName("pekomiko")
 	table.UseAntiInjection(true)
 	table.InitByStruct(desk)
-	if err != nil {
-		fmt.Printf("BuildCreateStmt err: %+v\n", err)
-		return nil
-	}
-	return table
+	return g
 }
 
 func CreateDemo() {
-	table := InitTable()
-	sql, err := table.BuildCreateStmt()
+	g := InitTable()
+	sql, err := g.GetTable(TID).BuildCreateStmt()
 
 	if err != nil {
 		return
 	}
+
+	// fmt.Printf("CreateDemo | sql: %s\n", sql)
 
 	result, err := db.Exec(sql)
 
@@ -86,8 +94,8 @@ func CreateDemo() {
 }
 
 func InsertDemo() {
-	table := InitTable()
-	table.UseAntiInjection(true)
+	g := InitTable()
+	table := g.GetTable(TID)
 
 	for i := 1; i <= 10; i++ {
 		desk := &Desk{Id: 40 + i, Content: fmt.Sprintf("content%d", i)}
@@ -100,6 +108,7 @@ func InsertDemo() {
 		return
 	}
 
+	// fmt.Printf("InsertDemo | sql: %s\n", sql)
 	result, err := db.Exec(sql)
 
 	if err != nil {
@@ -111,7 +120,8 @@ func InsertDemo() {
 }
 
 func QueryDemo() {
-	table := InitTable()
+	g := InitTable()
+	table := g.GetTable(TID)
 	table.SetOrderBy("Id").
 		WhetherReverseOrder(true).
 		SetLimit(5).
@@ -122,7 +132,7 @@ func QueryDemo() {
 		return
 	}
 
-	fmt.Printf("QueryDemo | sql: %s\n", sql)
+	// fmt.Printf("QueryDemo | sql: %s\n", sql)
 	result, err := db.Query(sql)
 
 	if err != nil {
@@ -137,7 +147,8 @@ func QueryDemo() {
 }
 
 func UpdateDemo() {
-	table := InitTable()
+	g := InitTable()
+	table := g.GetTable(TID)
 	desk := &Desk{Id: 47, Content: "content"}
 	table.Update(desk, gdo.WS().Eq("Id", 47))
 	sql, err := table.BuildUpdateStmt()
@@ -146,6 +157,7 @@ func UpdateDemo() {
 		return
 	}
 
+	// fmt.Printf("UpdateDemo | sql: %s\n", sql)
 	result, err := db.Exec(sql)
 
 	if err != nil {
@@ -178,7 +190,8 @@ func BatchUpdateDemo() {
 }
 
 func DeleteDemo() {
-	table := InitTable()
+	g := InitTable()
+	table := g.GetTable(TID)
 	table.SetDeleteCondition(gdo.WS().Eq("Id", 49))
 	sql, err := table.BuildDeleteStmt(nil)
 
@@ -186,6 +199,7 @@ func DeleteDemo() {
 		return
 	}
 
+	// fmt.Printf("DeleteDemo | sql: %s\n", sql)
 	result, err := db.Exec(sql)
 
 	if err != nil {
